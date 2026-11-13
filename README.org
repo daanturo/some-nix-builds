@@ -1,0 +1,45 @@
+Use Github actions and [[https://app.cachix.org/cache/daanturo][Cachix]] to build some packages and cache their artifacts.
+
+* Usage
+
+In system ~flake.nix~:
+
+#+begin_src nix
+{
+  # ... other inputs ...
+  inputs.some-nixpkg-builds.url = "git+https://github.com/daanturo/some-nixpkg-builds?shallow=1";
+  # do not use inputs.some-nixpkg-builds.inputs.nixpkgs.follows as it causes cache misses
+  outputs = (
+    { self, ... }@inputs:
+    {
+      nixosConfigurations."my-nixos" = inputs.nixpkgs.lib.nixosSystem (rec {
+        system = "x86_64-linux";
+        modules = [
+          (
+            {
+              config,
+              lib,
+              pkgs,
+              ...
+            }:
+            {
+              environment.systemPackages = [
+                # explore packages:  nix flake show git+https://github.com/daanturo/some-nixpkg-builds
+                inputs.some-nixpkg-builds.packages.${system}.PACKAGE-NAME-HERE
+              ];
+              nix.settings.substituters = [
+                # ... others ...
+                "https://daanturo.cachix.org?priority=42" # prioritize cache.nixos.org (40) and other cachix (41), use this last
+              ];
+              nix.settings.trusted-public-keys = [
+                # ... others ...
+                "daanturo.cachix.org-1:1sWdLYofZ2zEBvCWl2LWvV/jvPREWc3Gx70jEy1rpBA="
+              ];
+            }
+          )
+        ];
+      });
+    }
+  );
+}
+#+end_src

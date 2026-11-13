@@ -29,4 +29,4 @@ jobs:
 
       - name: nix build and push cache implicitly
         run: |
-          nix flake check
+          nix flake check -L
