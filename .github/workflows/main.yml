@@ -1,0 +1,32 @@
+name: update-flake-lock-and-build
+on:
+  workflow_dispatch: # allows manual triggering
+  schedule:
+    - cron: "0 0 * * 0" # runs weekly on Sunday at 00:00 UTC
+
+jobs:
+  lockfile:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+      - name: Install Determinate Nix
+        uses: DeterminateSystems/determinate-nix-action@v3
+
+      - uses: cachix/cachix-action@v17
+        with:
+          name: daanturo
+          authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
+
+      - name: nix flake update
+        run: |
+          git config --global user.email    "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name     "github-actions[bot]"
+          nix flake update --commit-lock-file
+          git push
+
+      - name: nix build and push cache implicitly
+        run: |
+          nix flake check
