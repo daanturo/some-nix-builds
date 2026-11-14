@@ -1,7 +1,7 @@
 {
 
-  # inputs.nixpkgs.url = "https://channels.nixos.org/nixos-unstable/nixexprs.tar.zst"; # unstable
   inputs.nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/*"; # latest stable
+  inputs.nixpkgs-unstable.url = "https://channels.nixos.org/nixos-unstable/nixexprs.tar.zst"; # unstable
   inputs.import-tree.url = "github:denful/import-tree";
 
   outputs = (
@@ -18,8 +18,9 @@
         nixpkgs.lib.genAttrs supportedSystems (
           system:
           f {
-            pkgs = import nixpkgs { inherit system; };
             system = system;
+            pkgs = import nixpkgs { inherit system; };
+            pkgs-unstable = import inputs.nixpkgs-unstable { inherit system; };
           }
         );
       config-by-import-tree = (
@@ -43,7 +44,12 @@
         # trick to build all packages with 'nix flake check' https://github.com/NixOS/nix/issues/7165#issuecomment-3396300462
         checks = (
           forEachSupportedSystem (
-            { pkgs, system, ... }:
+            {
+              system,
+              pkgs,
+              pkgs-unstable,
+              ...
+            }:
             (lib.mapAttrs' (name: lib.nameValuePair "package-${name}") (
               config-by-import-tree.packages.${system} or { }
             ))

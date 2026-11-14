@@ -8,7 +8,13 @@ let
 in
 {
   packages = forEachSupportedSystem (
-    { pkgs, system, ... }: {
+    {
+      system,
+      pkgs,
+      pkgs-unstable,
+      ...
+    }:
+    {
 
       # https://github.com/wvhulle/pretty-lean/blob/84c8a180d872c376bdab1b280b36669883f2a5be/flake.nix#L243-L247
       lean = inputs.pretty-lean4.packages.${system}.lean;
