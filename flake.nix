@@ -37,31 +37,21 @@
         }).config
       );
     in
-    {
-
-      # trick to build all packages with 'nix flake check' https://github.com/NixOS/nix/issues/7165#issuecomment-3396300462
-      checks = (
-        forEachSupportedSystem (
-          { pkgs, system, ... }:
-          (lib.attrsets.unionOfDisjoint
-            {
-              # other checks
-            }
-            (
-              lib.mapAttrs' (name: lib.nameValuePair "package-${name}") (
-                config-by-import-tree.packages.${system} or { }
-              )
-            )
+    (lib.foldl' lib.recursiveUpdate { } [
+      config-by-import-tree
+      {
+        # trick to build all packages with 'nix flake check' https://github.com/NixOS/nix/issues/7165#issuecomment-3396300462
+        checks = (
+          forEachSupportedSystem (
+            { pkgs, system, ... }:
+            (lib.mapAttrs' (name: lib.nameValuePair "package-${name}") (
+              config-by-import-tree.packages.${system} or { }
+            ))
           )
-        )
-      );
+        );
+      }
+    ])
 
-      #  infinite recursion if using the above trick unmodified in flake
-      packages = (config-by-import-tree.packages or { });
-      devShells = (config-by-import-tree.devShells or { });
-      apps = (config-by-import-tree.apps or { });
-
-    }
   );
 
   inputs.pretty-lean4.url = "github:wvhulle/lean4";

@@ -14,7 +14,7 @@ in
       # # error: RPC failed; HTTP 500 curl 22 The requested URL returned error: 500
       # # fatal: expected 'packfile'
       # # Unable to checkout [HEX] from https://https.git.savannah.gnu.org/git/emacs.git.
-      # emacs-igc-pgtk = inputs.emacs-overlay.packages.${system}.emacs-igc-pgtk;
+      emacs-igc-pgtk = inputs.emacs-overlay.packages.${system}.emacs-igc-pgtk;
 
     }
   );

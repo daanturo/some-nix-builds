@@ -12,21 +12,23 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+
+      # compared to vanilla nix, "--extra-experimental-features" "nix-command flakes" is available OOTB
       - name: Install Determinate Nix
         uses: DeterminateSystems/determinate-nix-action@v3
+        with:
+          extra-conf: |
+            extra-substituters = https://nix-community.cachix.org https://daanturo.cachix.org?priority=42
+            extra-trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= daanturo.cachix.org-1:1sWdLYofZ2zEBvCWl2LWvV/jvPREWc3Gx70jEy1rpBA=
 
       - uses: cachix/cachix-action@v17
         with:
           name: daanturo
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
 
-      - name: nix flake update
+      - name: nix flake lock file update, build, push commit if building successes
         run: |
           git config --global user.email    "github-actions[bot]@users.noreply.github.com"
           git config --global user.name     "github-actions[bot]"
           nix flake update --commit-lock-file
-          git push
-
-      - name: nix build and push cache implicitly
-        run: |
-          nix flake check -L
+          nix flake check -L && git push
